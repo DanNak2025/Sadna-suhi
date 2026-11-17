@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>חוברת מתכונים לסדנת סושי - Sodexo × ניצנה</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    background: #141916;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Conteneur 3D du livre */
+  .book-scene {
+    width: 100vw;
+    height: 100dvh;
+    max-width: 460px;
+    max-height: 860px;
+    perspective: 1800px;
+    position: relative;
+    padding: 10px;
+  }
+
+  .book {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    border-radius: 14px 4px 4px 14px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.75);
+  }
+
+  /* Reliure du livre (à droite en hébreu RTL) */
+  .book::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 16px;
+    height: 100%;
+    background: linear-gradient(to left, rgba(0,0,0,0.45), rgba(255,255,255,0.12) 45%, rgba(0,0,0,0.18));
+    z-index: 100;
+    pointer-events: none;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Chaque feuille du livre */
+  .sheet {
+    position: absolute;
+    inset: 0;
+    transform-origin: right center; /* Reliure à droite pour lecture hébreu */
+    transition: transform 0.75s cubic-bezier(0.645, 0.045, 0.355, 1);
+    transform-style: preserve-3d;
+    border-radius: 14px 4px 4px 14px;
+    background: #f8f2e4;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.28);
+    overflow: hidden;
+  }
+
+  /* Page tournée (ouverte) */
+  .sheet.flipped {
+    transform: rotateY(175deg);
+    pointer-events: none;
+  }
+
+  /* Ombre réaliste pendant le mouvement */
+  .sheet::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.08), transparent 15%);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Contenu intérieur d'une page */
+  .page-inner {
+    width: 100%;
+    height: 100%;
+    padding: 12px 16px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,0.6), transparent 60%),
+      #f8f2e4;
+    color: #1e201d;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* En-tête de page */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #dfd4bc;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    z-index: 20;
+  }
+  .brand-sodexo {
+    font-weight: 900;
+    font-size: 15px;
+    color: #1e293b;
+  }
+  .brand-sodexo span { color: #e11d48; }
+  .page-count-tag {
+    font-size: 11px;
+    font-weight: 800;
+    color: #78716c;
+  }
+  .brand-nitzana {
+    font-size: 13px;
+    font-weight: 800;
+    color: #047857;
+    letter-spacing: 1px;
+  }
+
+  /* Couverture du livre (Page 0) */
+  .cover-inner {
+    background: linear-gradient(to bottom, rgba(16, 23, 19, 0.35) 0%, rgba(16, 23, 19, 0.94) 76%), url('cover.jpg') no-repeat center top;
+    background-size: cover;
+    color: #fff;
+    border: 2px solid #c59b38;
+    border-radius: 12px 2px 2px 12px;
+    justify-content: space-between;
+  }
+  .cover-inner .page-header {
+    border-bottom-color: rgba(255,255,255,0.2);
+  }
+  .cover-inner .brand-sodexo { color: #fff; }
+  .cover-inner .brand-nitzana { color: #6ee7b7; }
+
+  .cover-center {
+    text-align: center;
+    padding-top: 110px;
+    z-index: 10;
+  }
+  .cover-ornament {
+    color: #eab308;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .cover-title {
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.1;
+    color: #fdf8eb;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.85);
+    margin-bottom: 3px;
+  }
+  .cover-subtitle {
+    font-size: 13px;
+    color: #e2e8f0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.85);
+    margin-bottom: 12px;
+  }
+
+  .toc-box {
+    background: rgba(0, 0, 0, 0.72);
+    border: 1px solid rgba(234, 179, 8, 0.5);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: right;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  }
+  .toc-heading {
+    font-size: 12px;
+    font-weight: 800;
+    color: #facc15;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .toc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 6px;
+    border-bottom: 1px dashed rgba(255,255,255,0.15);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .toc-row:last-child { border-bottom: none; }
+  .toc-num {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 99px;
+    font-size: 10px;
+    color: #fff;
+    margin-left: 6px;
+  }
+
+  /* Titre de recette sur les pages */
+  .recipe-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 6px;
+  }
+  .badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 900;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  }
+  .recipe-title {
+    font-size: 19px;
+    font-weight: 900;
+    line-height: 1.1;
+    color: #111827;
+  }
+  .recipe-sub {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+
+  /* Photo culinaire en haut de chaque recette */
+  .recipe-image {
+    width: 100%;
+    height: 112px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 1px solid #e2d7c1;
+  }
+
+  /* Blocs éditoriaux */
+  .book-block {
+    background: rgba(255, 255, 255, 0.68);
+    border: 1px solid #e2d7c1;
+    border-radius: 8px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+  }
+  .block-label {
+    display: inline-block;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 1px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+
+  .ing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px 8px;
+    font-size: 11.5px;
+  }
+  .ing-grid.single-col {
+    grid-template-columns: 1fr;
+  }
+  .ing-line {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted #d6cbb5;
+    padding-bottom: 1px;
+  }
+  .ing-line strong {
+    font-weight: 800;
+  }
+
+  .steps-ol {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11.5px;
+    line-height: 1.25;
+  }
+  .steps-ol li {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+  .step-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .tip-strip {
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  /* Boutons pour tourner les pages en bas */
+  .page-turn-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #dfd4bc;
+    padding-top: 6px;
+    margin-top: 5px;
+    position: relative;
+    z-index: 30;
+  }
+  .cover-inner .page-turn-controls {
+    border-top-color: rgba(255,255,255,0.15);
+  }
+
+  .turn-btn {
+    height: 34px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1.5px solid #cbbba0;
+    background: #efe6d2;
+    color: #292524;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: transform 0.12s, opacity 0.2s;
+  }
+  .turn-btn:active {
+    transform: scale(0.95);
+  }
+  .turn-btn.primary {
+    border: none;
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+  }
+  .turn-btn.toc-btn {
+    padding: 0 8px;
+    font-size: 11px;
+    background: transparent;
+  }
+  .cover-inner .turn-btn.primary {
+    background: #eab308;
+    color: #111827;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<div class="book-scene" id="bookScene">
+  <div class="book" id="book"></div>
+</div>
+
+<script>
+const PAGES = [
+  {
+    type: "cover"
+  },
+  {
+    num: "1/5",
+    color: "#d91c5c",
+    image: "rice.jpg",
+    title: "אורז לסושי",
+    sub: "אורז מושלם - הבסיס לסושי מצוין!",
+    ings: [
+      ["אורז לסושי", '1 ק"ג'],
+      ["מים (יחס 1:1.2)", "1.2 ליטר"]
+    ],
+    steps: [
+      "שוטפים את האורז 4-6 פעמים עד שהמים יוצאים כמעט שקופים.",
+      "מסננים היטב.",
+      "מבשלים בסיר עם מכסה 12-14 דקות על אש נמוכה.",
+      "מכבים את האש ומשאירים מכוסה לעוד 10 דקות.",
+      "מעבירים לקערת עץ/זכוכית רחבה ומתבלים בתחמיץ (בעמוד הבא)."
+    ],
+    tip: "לא לערבב חזק כדי לא למעוך את האורז. להשתמש באורז איכותי שמיועד לסושי.",
+    pageNo: 1
+  },
+  {
+    num: "2/5",
+    color: "#e11d74",
+    image: "vinegar.jpg",
+    title: "תחמיץ לאורז סושי",
+    sub: "הטעם המיוחד שנותן לאורז את האיזון המושלם",
+    ings: [
+      ["חומץ אורז", '200 מ"ל'],
+      ["סוכר", "100 גרם"],
+      ["מלח", "20 גרם"]
+    ],
+    steps: [
+      "מחממים בסיר קטן את החומץ, הסוכר והמלח.",
+      "מערבבים עד שהסוכר נמס (לא להרתיח).",
+      "מצננים לטמפרטורת החדר.",
+      "מוסיפים לאורז החם (לא רותח) ומערבבים בעדינות בתנועות קיפול."
+    ],
+    tip: 'יחס מומלץ: כ-60 מ"ל תחמיץ לכל 1 ק"ג אורז מבושל.',
+    pageNo: 2
+  },
+  {
+    num: "3/5",
+    color: "#2e7d32",
+    image: "pickles.jpg",
+    title: "חמוצים יפניים",
+    sub: "צבעוניים, מרעננים ומושלמים לסושי",
+    ings: [
+      ["כרוב לבן", '10 ק"ג'],
+      ["מלפפון", '5 ק"ג'],
+      ["גזר", '5 ק"ג'],
+      ["גמבה אדומה", '5 ק"ג'],
+      ["חומץ (תחמיץ)", "1 ליטר"],
+      ["סוכר לבן", '1 ק"ג'],
+      ["מים", '500 מ"ל'],
+      ["מלח", "40 גרם"],
+      ["שאטה גרוס", "לפי הטעם"],
+      ["שמן שומשום", '50 מ"ל'],
+      ["שומשום שחור", "לפי הצורך"]
+    ],
+    steps: [
+      "חותכים את כל הירקות לגודל הרצוי ומערבבים בקערה.",
+      "מבשלים את חומרי התחמיץ (בלי השמן) עד שהסוכר נמס.",
+      "שופכים את התחמיץ החם על הירקות ומניחים לצינון.",
+      "כשהתערובת קרה, מוסיפים שמן שומשום ושומשום שחור."
+    ],
+    tip: "אפשר לשמור במקרר בכלי סגור עד שבועיים. הטעם משתבח עם הזמן!",
+    pageNo: 3
+  },
+  {
+    num: "4/5",
+    color: "#ea580c",
+    image: "spicymayo.jpg",
+    title: "ספייסי מיונז",
+    sub: "רוטב קלאסי לסושי",
+    ings: [
+      ["מיונז", "250 גרם"],
+      ["רוטב סריראצ'ה", "50-100 גרם"],
+      ["שמן שומשום", '5 מ"ל'],
+      ["מיץ ליים", '10 מ"ל'],
+      ["אבקת שום (רשות)", "2 גרם"],
+      ["דבש (רשות)", "5 גרם"]
+    ],
+    steps: [
+      "מערבבים את כל המרכיבים בקערה עד לקבלת רוטב חלק.",
+      "טועמים ומתקנים חריפות וחמיצות לפי הטעם.",
+      "שומרים במקרר בכלי סגור עד 5 ימים."
+    ],
+    tip: "ניתן להשתמש גם בצ'ילי גרוס טרי או בכל רוטב צ'ילי אהוב.",
+    pageNo: 4
+  },
+  {
+    num: "5/5",
+    color: "#0284c7",
+    image: "cucumber.jpg",
+    title: "סלט מלפפונים אסייתי",
+    sub: "רענן, פריך וממכר",
+    ings: [
+      ["מלפפונים פרוסים דק", '1 ק"ג'],
+      ["חומץ אורז", '60 מ"ל'],
+      ["רוטב סויה", '40 מ"ל'],
+      ["שמן שומשום", '20 מ"ל'],
+      ["סוכר", "20 גרם"],
+      ["שומשום לבן", "10 גרם"],
+      ["צ'ילי אדום (רשות)", "2 יח'"],
+      ["בצל ירוק", "2 גבעולים"]
+    ],
+    steps: [
+      "פורסים את המלפפונים דק (בעזרת מנדולינה).",
+      "מערבבים בקערה את כל חומרי הרוטב.",
+      "מוסיפים את המלפפונים, בצל ירוק וצ'ילי.",
+      "מערבבים ומניחים לפחות 15 דקות לפני ההגשה."
+    ],
+    tip: "להגיש קר, כתוספת לצד סושי.",
+    pageNo: 5
+  }
+];
+
+const bookEl = document.getElementById("book");
+let currentPage = 0;
+
+function buildBook() {
+  bookEl.innerHTML = PAGES.map((p, idx) => {
+    const zIndex = PAGES.length - idx;
+    if (p.type === "cover") {
+      return `
+        <div class="sheet" data-index="${idx}" style="z-index:${zIndex}">
+          <div class="page-inner cover-inner">
+            <div class="page-header">
+              <div class="brand-sodexo">sodex<span>*</span>o</div>
+              <div class="brand-nitzana">ניצנה</div>
+            </div>
+            <div class="cover-center">
+              <div class="cover-ornament">חוברת מתכונים • מהדורה דיגיטלית</div>
+              <h1 class="cover-title">סדנת סושי</h1>
+              <p class="cover-subtitle">מתכוני בסיס ורטבים עם שף יפתח חג'בי</p>
+              <div class="toc-box">
+                <div class="toc-heading">תוכן העניינים (לחצו על מתכון)</div>
+                ${PAGES.slice(1).map((r, rIdx) => `
+                  <div class="toc-row" onclick="flipTo(${rIdx + 1})">
+                    <div>
+                      <span class="toc-num" style="background:${r.color}">${r.num}</span>
+                      <span>${r.title}</span>
+                    </div>
+                    <span style="color:#94a3b8;font-size:11px;">עמ' ${r.pageNo}</span>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div class="page-turn-controls">
+              <button class="turn-btn primary" onclick="nextPage()">פתיחת הספרון ⟵</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const singleCol = p.ings.length <= 4 ? "single-col" : "";
+    const isLast = idx === PAGES.length - 1;
+    return `
+      <div class="sheet" data-index="${idx}" style="z-index:${zIndex}">
+        <div class="page-inner">
+          <div>
+            <div class="page-header">
+              <div class="brand-sodexo">sodex<span>*</span>o</div>
+              <span class="page-count-tag">עמוד ${p.pageNo} מתוך 5</span>
+              <div class="brand-nitzana">ניצנה</div>
+            </div>
+
+            <div class="recipe-banner">
+              <div class="badge" style="background:${p.color}">${p.num}</div>
+              <div>
+                <div class="recipe-title">${p.title}</div>
+                <div class="recipe-sub" style="color:${p.color}">${p.sub}</div>
+              </div>
+            </div>
+
+            <img src="${p.image}" class="recipe-image" alt="${p.title}">
+
+            <div class="book-block">
+              <div class="block-label" style="background:${p.color}">מצרכים:</div>
+              <div class="ing-grid ${singleCol}">
+                ${p.ings.map(i => `
+                  <div class="ing-line">
+                    <span>${i[0]}</span>
+                    <strong style="color:${p.color}">${i[1]}</strong>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <div class="book-block">
+              <div class="block-label" style="background:${p.color}">אופן ההכנה:</div>
+              <ol class="steps-ol">
+                ${p.steps.map((s, sIdx) => `
+                  <li>
+                    <span class="step-dot" style="background:${p.color}">${sIdx + 1}</span>
+                    <span>${s}</span>
+                  </li>
+                `).join("")}
+              </ol>
+            </div>
+          </div>
+
+          <div>
+            <div class="tip-strip" style="background:${p.color}">
+              <strong>💡 טיפ:</strong> ${p.tip}
+            </div>
+            <div class="page-turn-controls">
+              <button class="turn-btn" onclick="prevPage()">⟶ הקודם</button>
+              <button class="turn-btn toc-btn" onclick="flipTo(0)">תוכן</button>
+              ${isLast
+                ? `<button class="turn-btn primary" style="background:${p.color}" onclick="flipTo(0)">סגירה ↺</button>`
+                : `<button class="turn-btn primary" style="background:${p.color}" onclick="nextPage()">הבא ⟵</button>`
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function updateBook() {
+  const sheets = document.querySelectorAll(".sheet");
+  sheets.forEach((sheet, idx) => {
+    if (idx < currentPage) {
+      sheet.classList.add("flipped");
+      sheet.style.zIndex = idx + 1;
+    } else {
+      sheet.classList.remove("flipped");
+      sheet.style.zIndex = PAGES.length - idx;
+    }
+  });
+}
+
+function nextPage() {
+  if (currentPage < PAGES.length - 1) {
+    currentPage++;
+    updateBook();
+  }
+}
+
+function prevPage() {
+  if (currentPage > 0) {
+    currentPage--;
+    updateBook();
+  }
+}
+
+function flipTo(target) {
+  currentPage = Math.max(0, Math.min(PAGES.length - 1, target));
+  updateBook();
+}
+
+// Geste de glissement tactile (Swipe) pour tourner les pages
+let startX = 0;
+const scene = document.getElementById("bookScene");
+scene.addEventListener("touchstart", e => {
+  startX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+scene.addEventListener("touchend", e => {
+  const diff = e.changedTouches[0].screenX - startX;
+  if (Math.abs(diff) > 45) {
+    if (diff > 0) nextPage();
+    else prevPage();
+  }
+}, { passive: true });
+
+buildBook();
+</script>
+</body>
+</html>
